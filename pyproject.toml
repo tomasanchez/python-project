@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "Python Template"
+version = "0.0.1"
+description = "A template for Python projects"
+authors = ["Tomas Sanchez <tosanchez@frba.utn.edu.ar>"]
+readme = "README.md"
+repository = "git@github.com:tomasanchez/python-project.git"
+packages = [
+    { include = "hello", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0"
+coverage = { extras = ["toml"], version = "*" }
+pytest-cov = "*"
+pre-commit = ">=2.9.3"
+isort = ">=5.0"
+black = "*"
+flake8 = "*"
+flake8-cognitive-complexity = "*"
+pylint = "*"
+mypy = "*"
+
+[tool.black]
+line-length = 120
+target-version = ['py310']
+include = '\.pyi?$'
+
+[tool.coverage.run]
+branch = true
+omit = []
+
+[tool.coverage.report]
+show_missing = true
+ignore_errors = true
+exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if TYPE_CHECKING:", "if __name__ == .__main__.:"]
+
+[tool.isort]
+known_first_party = "hello"
+line_length = 120
+multi_line_output = 3
+use_parentheses = true
+include_trailing_comma = true
+ensure_newline_before_comments = true
+force_grid_wrap = 0
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.pylint.basic]
+max-line-length = 120
+argument-rgx = "[a-z_][a-z0-9_]{0,30}$"
+function-rgx = "[a-z_][a-z0-9_]*$"
+variable-rgx = "[a-z_][a-z0-9_]{0,30}$"
+good-names = ["logger", "i", "j", "k", "ex", "Run", "T"]
+bad-names = ["l", "I", "O"]
+
+[tool.pylint.logging]
+logging-modules = "logging"
+
+[tool.pylint.messages_control]
+disable = [
+    "fixme",
+    "no-member",
+    "unused-argument",
+    "too-few-public-methods",
+    "duplicate-code",
+    "no-name-in-module",
+]
+
+[tool.pylint.reports]
+reports = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = "tests"
+python_files = "test_*.py"
+junit_family = "xunit1"
+log_cli = false
+log_level = "DEBUG"
