@@ -24,4 +24,4 @@ RUN pip install --disable-pip-version-check "poetry==$POETRY_VERSION"
 RUN poetry config virtualenvs.create false \
     && poetry install --only main
 
-CMD ["poetry", "run", "hello"]
+CMD ["poetry", "run", "python","-m", "hello.main"]
