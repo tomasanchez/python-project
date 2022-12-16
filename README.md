@@ -1,2 +1,3 @@
-# python-project
-A Templates based on Cosmic Python
+# Python Project Template
+
+A Project Template based on Cosmic Python
