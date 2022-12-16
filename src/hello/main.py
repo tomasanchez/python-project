@@ -1,10 +1,9 @@
 def hello() -> str:
+    """
+    Return a friendly greeting.
+    """
     return "Hello, world!"
 
 
-def run():
-    print(hello())
-
-
 if __name__ == "__main__":
-    run()
+    print(hello())
