@@ -21,14 +21,8 @@ def make_batch_and_line(sku, batch_qty, line_qty) -> tuple[Batch, OrderLine]:
         tuple: A tuple containing the batch and the line.
     """
     return (
-        Batch(ref='batch1',
-              sku=sku, qty=batch_qty,
-              eta=date.today()
-              ),
-        OrderLine(order_id='order1',
-                  sku=sku,
-                  qty=line_qty
-                  ),
+        Batch(ref="batch1", sku=sku, qty=batch_qty, eta=date.today()),
+        OrderLine(order_id="order1", sku=sku, qty=line_qty),
     )
 
 
@@ -41,7 +35,7 @@ class TestAllocationDomain(TestCase):
         """
         Allocating to a batch reduces the available quantity.
         """
-        batch, line = make_batch_and_line('SMALL-TABLE', 20, 2)
+        batch, line = make_batch_and_line("SMALL-TABLE", 20, 2)
 
         batch.allocate(line)
 
@@ -51,7 +45,7 @@ class TestAllocationDomain(TestCase):
         """
         Can allocate if available greater than required.
         """
-        large_batch, small_line = make_batch_and_line('ELEGANT-LAMP', 20, 2)
+        large_batch, small_line = make_batch_and_line("ELEGANT-LAMP", 20, 2)
 
         assert large_batch.can_allocate(small_line)
 
@@ -59,7 +53,7 @@ class TestAllocationDomain(TestCase):
         """
         Cannot allocate if available smaller than required.
         """
-        small_batch, large_line = make_batch_and_line('ELEGANT-LAMP', 2, 20)
+        small_batch, large_line = make_batch_and_line("ELEGANT-LAMP", 2, 20)
 
         assert small_batch.can_allocate(large_line) is False
 
@@ -67,7 +61,7 @@ class TestAllocationDomain(TestCase):
         """
         Can allocate if available equal to required.
         """
-        batch, line = make_batch_and_line('ELEGANT-LAMP', 2, 2)
+        batch, line = make_batch_and_line("ELEGANT-LAMP", 2, 2)
 
         assert batch.can_allocate(line)
 
@@ -75,8 +69,8 @@ class TestAllocationDomain(TestCase):
         """
         Cannot allocate if skus do not match.
         """
-        batch = Batch('batch1', 'UNCOMFORTABLE-CHAIR', 100, eta=None)
-        different_sku_line = OrderLine('order1', 'EXPENSIVE-TOASTER', 10)
+        batch = Batch("batch1", "UNCOMFORTABLE-CHAIR", 100, eta=None)
+        different_sku_line = OrderLine("order1", "EXPENSIVE-TOASTER", 10)
 
         assert batch.can_allocate(different_sku_line) is False
 
@@ -84,7 +78,7 @@ class TestAllocationDomain(TestCase):
         """
         Can only deallocate allocated lines.
         """
-        batch, unallocated_line = make_batch_and_line('DECORATIVE-TRINKET', 20, 2)
+        batch, unallocated_line = make_batch_and_line("DECORATIVE-TRINKET", 20, 2)
 
         batch.deallocate(unallocated_line)
 
@@ -94,7 +88,7 @@ class TestAllocationDomain(TestCase):
         """
         Allocation is idempotent.
         """
-        batch, line = make_batch_and_line('ANGULAR-DESK', 20, 2)
+        batch, line = make_batch_and_line("ANGULAR-DESK", 20, 2)
 
         batch.allocate(line)
         batch.allocate(line)

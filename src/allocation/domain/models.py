@@ -11,6 +11,7 @@ class OrderLine:
     """
     Represents an item in an order.
     """
+
     order_id: str
     sku: str
     qty: int
