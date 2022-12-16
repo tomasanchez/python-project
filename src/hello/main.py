@@ -1,3 +1,8 @@
+"""
+Simple Hello World example.
+"""
+
+
 def hello() -> str:
     """
     Return a friendly greeting.

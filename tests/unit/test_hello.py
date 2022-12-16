@@ -1,3 +1,7 @@
+"""
+Simple example of a unit test.
+"""
+
 from hello.main import hello
 
 
