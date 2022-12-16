@@ -2,5 +2,9 @@ def hello() -> str:
     return "Hello, world!"
 
 
-if __name__ == "__main__":
+def run():
     print(hello())
+
+
+if __name__ == "__main__":
+    run()
