@@ -13,6 +13,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.10"
 fastapi = { version = "~0.88.0", extras = ["all"] }
+sqlalchemy = "~1.4.0"
+uvicorn = { version = "~0.20.0", extras = ["standard"] }
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0"
@@ -41,7 +43,7 @@ ignore_errors = true
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if TYPE_CHECKING:", "if __name__ == .__main__.:"]
 
 [tool.isort]
-known_first_party = "hello"
+known_first_party = "allocation"
 line_length = 120
 multi_line_output = 3
 use_parentheses = true
@@ -59,6 +61,7 @@ function-rgx = "[a-z_][a-z0-9_]*$"
 variable-rgx = "[a-z_][a-z0-9_]{0,30}$"
 good-names = ["logger", "i", "j", "k", "ex", "Run", "T"]
 bad-names = ["l", "I", "O"]
+ignore-patterns = "test_.*?py"
 
 [tool.pylint.logging]
 logging-modules = "logging"
@@ -71,6 +74,8 @@ disable = [
     "too-few-public-methods",
     "duplicate-code",
     "no-name-in-module",
+    "no-self-argument",
+    "missing-class-docstring",
 ]
 
 [tool.pylint.reports]
