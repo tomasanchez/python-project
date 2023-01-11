@@ -5,7 +5,7 @@ This module contains the main entry point for the allocation service.
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
-from allocation.routers import router
+from allocation.entrypoints.routers import router
 
 app = FastAPI(
     title="Allocation Service",

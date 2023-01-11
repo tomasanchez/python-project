@@ -7,8 +7,8 @@ from logging.config import dictConfig
 from fastapi import APIRouter, Depends, HTTPException
 
 from allocation.adapters import repository
-from allocation.dependencies import get_batch_repository
 from allocation.domain import models, schemas
+from allocation.entrypoints.dependencies import get_batch_repository
 from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
 from allocation.settings.config import LogConfig
 

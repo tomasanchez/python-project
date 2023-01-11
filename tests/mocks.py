@@ -2,7 +2,7 @@
 This module describes all shared mocks.
 """
 from allocation.adapters.repository import SqlAlchemyRepository
-from allocation.dependencies import get_batch_repository, get_session
+from allocation.entrypoints.dependencies import get_batch_repository, get_session
 from allocation.main import app
 
 
