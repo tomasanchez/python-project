@@ -11,10 +11,10 @@ from sqlalchemy.orm import clear_mappers, sessionmaker
 from sqlalchemy.pool import StaticPool
 from starlette.testclient import TestClient
 
+from allocation.adapters.orm import metadata, start_mappers
+from allocation.adapters.repository import SqlAlchemyRepository
 from allocation.domain.models import Batch
 from allocation.main import app
-from allocation.orm import metadata, start_mappers
-from allocation.repository.repository import SqlAlchemyRepository
 
 
 @pytest.fixture(name="test_client")
