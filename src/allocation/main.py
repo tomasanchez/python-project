@@ -20,7 +20,7 @@ def root_redirect():
     """
     Redirects the root path to the docs.
     """
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url="/docs", status_code=301)
 
 
 if __name__ == "__main__":
