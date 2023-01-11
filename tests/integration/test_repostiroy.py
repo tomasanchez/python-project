@@ -43,8 +43,8 @@ def insert_batch(session, reference) -> int:
 
     """
     session.execute(
-        "INSERT INTO batches (reference, sku, _purchased_quantity)" "VALUES (:reference, :sku, :qty)",
-        dict(reference=reference, sku="GENERIC-SOFA", qty=100),
+        "INSERT INTO batches (reference, sku, _purchased_quantity, eta)" "VALUES (:reference, :sku, :qty, :eta)",
+        dict(reference=reference, sku="GENERIC-SOFA", qty=100, eta="2021-01-01"),
     )
 
     [[batch_id]] = session.execute(
@@ -88,9 +88,10 @@ class TestRepository:
         insert_allocation(session, order_line_id, batch1_id)
 
         repo = repository.SqlAlchemyRepository(session, kind=models.Batch)
-        retrieved = repo.find_by_id(batch1_id)
+        # noinspection PyTypeChecker
+        retrieved: models.Batch = repo.find_by_id(batch1_id)
 
-        expected = models.Batch("batch1", "GENERIC-SOFA", 100, eta=None)
+        expected = models.Batch("batch1", "GENERIC-SOFA", 100)
         assert retrieved == expected
         assert retrieved.sku == expected.sku
         assert retrieved._purchased_quantity == expected._purchased_quantity
