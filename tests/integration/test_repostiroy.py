@@ -1,8 +1,8 @@
 """
 Test Suites for the SQLAlchemy Repository.
 """
+from allocation.adapters import repository
 from allocation.domain import models
-from allocation.repository import repository
 
 
 def insert_order_line(session) -> int:
