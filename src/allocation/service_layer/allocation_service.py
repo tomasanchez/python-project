@@ -1,6 +1,8 @@
 """
 This module describes the service responsible for allocating orders.
 """
+from datetime import date
+
 from sqlalchemy.orm import Session
 
 from allocation.adapters.repository import AbstractRepository
@@ -84,6 +86,20 @@ class AllocationService:
         self.session.commit()
 
         return batch_ref
+
+    def add_batch(self, ref: str, sku: str, qty: int, eta: date | None = None):
+        """
+        Adds a batch.
+
+        Args:
+            ref: The batch reference.
+            sku: The Stock Keeping Unit
+            qty: Quantity of the batch
+            eta: Estimated time of arrival
+        """
+        batch = Batch(ref=ref, sku=sku, qty=qty, eta=eta)
+        self.batch_repository.save(batch)
+        self.session.commit()
 
 
 def allocate(order: OrderLine, batches: list[Batch]) -> str | None:
