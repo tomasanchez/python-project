@@ -1,6 +1,8 @@
 """
 This module describes the service responsible for allocating orders.
 """
+from sqlalchemy.orm import Session
+
 from allocation.adapters.repository import AbstractRepository
 from allocation.domain.models import Batch, OrderLine
 
@@ -45,8 +47,9 @@ class AllocationService:
     Abstraction responsible for allocating orders.
     """
 
-    def __init__(self, batch_repository: AbstractRepository):
+    def __init__(self, batch_repository: AbstractRepository, session: Session):
         self.batch_repository = batch_repository
+        self.session = session
 
     def allocate(self, order: OrderLine) -> str:
         """
@@ -74,6 +77,8 @@ class AllocationService:
 
         if not batch_ref:
             raise OutOfStock()
+
+        self.session.commit()
 
         return batch_ref
 

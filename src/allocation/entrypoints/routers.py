@@ -5,10 +5,11 @@ import logging
 from logging.config import dictConfig
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 from allocation.adapters import repository
 from allocation.domain import models, schemas
-from allocation.entrypoints.dependencies import get_batch_repository
+from allocation.entrypoints.dependencies import get_batch_repository, get_session
 from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
 from allocation.settings.config import LogConfig
 
@@ -22,6 +23,7 @@ logger = logging.getLogger("allocation_service")
 def allocate(
     order: schemas.OrderLine,
     batch_repository: repository.AbstractRepository = Depends(get_batch_repository),
+    session: Session = Depends(get_session),
 ):
     """
     Allocates an order line.
@@ -30,7 +32,7 @@ def allocate(
     line = models.OrderLine(order.order_id, order.sku, order.qty)
 
     try:
-        service = AllocationService(batch_repository)
+        service = AllocationService(batch_repository, session)
         batch_ref = service.allocate(line)
     except (InvalidSku, OutOfStock) as e:
         logger.error("Could not allocate for order (%s)", order)
