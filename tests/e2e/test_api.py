@@ -3,9 +3,8 @@ This module test the FastAPI API.
 """
 import uuid
 
-from mocks import override_batch_repository, override_session
-
 from allocation.service_layer.allocation_service import InvalidSku, NoBatchesAvailable, OutOfStock
+from tests.mocks import override_batch_repository, override_session
 
 
 def random_sku():

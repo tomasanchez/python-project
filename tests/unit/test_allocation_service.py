@@ -2,10 +2,10 @@
 This module contains Allocation Service unit test cases.
 """
 import pytest
-from mocks import FakeRepository, FakeSession
 
 from allocation.domain.models import Batch, OrderLine
 from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
+from tests.mocks import FakeRepository, FakeSession
 
 
 class TestAllocationService:
