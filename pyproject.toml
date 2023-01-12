@@ -35,7 +35,7 @@ include = '\.pyi?$'
 
 [tool.coverage.run]
 branch = true
-omit = []
+omit = ['*/tests*', '*/src/domain*']
 
 [tool.coverage.report]
 show_missing = true
@@ -88,3 +88,4 @@ python_files = "test_*.py"
 junit_family = "xunit1"
 log_cli = false
 log_level = "DEBUG"
+adopts = "-p no:logging"

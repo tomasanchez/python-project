@@ -3,10 +3,10 @@ This module contains the FastAPI router dependencies which are injected.
 """
 from sqlalchemy.orm import clear_mappers
 
-from allocation import database
+from allocation.adapters import database
+from allocation.adapters.orm import metadata, start_mappers
+from allocation.adapters.repository import SqlAlchemyRepository
 from allocation.domain import models
-from allocation.orm import metadata, start_mappers
-from allocation.repository.repository import SqlAlchemyRepository
 
 
 def get_session():

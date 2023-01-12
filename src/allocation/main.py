@@ -5,7 +5,7 @@ This module contains the main entry point for the allocation service.
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 
-from allocation.routers import router
+from allocation.entrypoints.routers import router
 
 app = FastAPI(
     title="Allocation Service",
@@ -20,7 +20,7 @@ def root_redirect():
     """
     Redirects the root path to the docs.
     """
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url="/docs", status_code=301)
 
 
 if __name__ == "__main__":
