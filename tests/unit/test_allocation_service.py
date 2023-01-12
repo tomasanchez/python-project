@@ -5,7 +5,7 @@ import datetime
 
 import pytest
 
-from allocation.domain.models import Batch, OrderLine
+from allocation.domain.models import Batch
 from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
 from tests.mocks import FakeRepository, FakeSession
 
@@ -19,19 +19,18 @@ class TestAllocationService:
         """
         Test that the allocation service returns an allocation.
         """
-        batch = Batch("b1", "COMPLICATED-LAMP", 100, eta=None)
-        repo = FakeRepository(Batch, [batch])
+        batch_ref = "b1"
+        repo = FakeRepository.for_batch(batch_ref, "COMPLICATED-LAMP", 100, eta=None)
 
         result = self.get_service(repo).allocate("o1", "COMPLICATED-LAMP", 10)
 
-        assert result == batch.reference
+        assert result == batch_ref
 
     def test_error_invalid_sku(self):
         """
         Test that the allocation service raises an error when an invalid SKU is provided.
         """
-        batch = Batch("b1", "A-REAL-SKU", 100, eta=None)
-        repo = FakeRepository(Batch, [batch])
+        repo = FakeRepository.for_batch("b1", "A-REAL-SKU", 100, eta=None)
 
         with pytest.raises(InvalidSku, match="Invalid SKU"):
             self.get_service(repo).allocate("o1", "NON-EXISTENT-SKU", 10)
@@ -49,8 +48,7 @@ class TestAllocationService:
         """
         Test that the allocation service raises an error when there is no stock available.
         """
-        batch = Batch("b1", "A-REAL-SKU", 9, eta=None)
-        repo = FakeRepository(Batch, [batch])
+        repo = FakeRepository.for_batch("b1", "A-REAL-SKU", 9, eta=None)
 
         with pytest.raises(OutOfStock, match="Out of stock"):
             self.get_service(repo).allocate("o1", "A-REAL-SKU", 10)
@@ -59,8 +57,7 @@ class TestAllocationService:
         """
         Tests that the allocation service commits the session.
         """
-        batch = Batch("b1", "OMINOUS-MIRROR", 100, eta=None)
-        repo = FakeRepository(Batch, [batch])
+        repo = FakeRepository.for_batch("b1", "OMINOUS-MIRROR", 100, eta=None)
         session = FakeSession()
 
         self.get_service(repo, session).allocate("o1", "OMINOUS-MIRROR", 10)

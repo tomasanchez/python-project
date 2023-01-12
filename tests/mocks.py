@@ -1,11 +1,13 @@
 """
 This module describes all shared mocks.
 """
+import datetime
 from typing import Generic, TypeVar
 
 from sqlalchemy.orm import Session
 
 from allocation.adapters.repository import AbstractRepository, SqlAlchemyRepository
+from allocation.domain import models
 from allocation.entrypoints.dependencies import get_batch_repository, get_session
 from allocation.main import app
 
@@ -49,6 +51,35 @@ class FakeRepository(AbstractRepository, Generic[T]):
 
     def find_all(self) -> list[T]:
         return self.data
+
+    def add(self, ref: str, sku: str, qty: int, eta: datetime.date | None = None):
+        """
+        Adds a batch.
+
+        Args:
+            ref: The batch reference.
+            sku: The Stock Keeping Unit
+            qty: Quantity
+            eta: Estimated Time of Arrival
+
+        """
+        self.data.append(models.Batch(ref, sku, qty, eta))
+
+    @staticmethod
+    def for_batch(ref: str, sku: str, qty: int, eta: datetime.date | None = None):
+        """
+        Creates a fake repository for a batch.
+
+        Args:
+            ref: The batch reference.
+            sku: The Stock Keeping Unit
+            qty: Quantity
+            eta: Estimated Time of Arrival
+
+        Returns:
+            FakeRepository: A fake repository for a batch.
+        """
+        return FakeRepository(models.Batch, [models.Batch(ref, sku, qty, eta)])
 
 
 class FakeSession(Session):
