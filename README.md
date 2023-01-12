@@ -108,4 +108,8 @@ Here’s one way we could organize things:
       inside a stateful
       entity or value object. For example, if you were building a shopping cart application, you might choose to build
       taxation rules as a domain service.
-- **(3)**.
+- **(3)**. Adapters, it comes from ports and adapters terminology. This will fill up with any other abstractions around
+  external I/O. Strictly speaking, you would call these secondary adapters or driven adapters, or sometimes
+  inward-facing adapters.
+- **(4)**. Entrypoints are the places we drive our application from. In the official ports and adapters terminology,
+  these are adapters too, and are referred to as primary, driving, or outward-facing adapters.
