@@ -35,7 +35,7 @@ include = '\.pyi?$'
 
 [tool.coverage.run]
 branch = true
-omit = []
+omit = ['*/tests*', '*/src/domain*']
 
 [tool.coverage.report]
 show_missing = true
