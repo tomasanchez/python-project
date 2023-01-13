@@ -43,14 +43,15 @@ class TestAllocationService:
         """
         Test that the allocation service raises an error when there are no batches available.
         """
+        service = AllocationService(FakeRepository(Batch, []), FakeSession())
         with pytest.raises(NoBatchesAvailable, match="No batches available"):
-            self.get_service().allocate("o1", "A-REAL-SKU", 10)
+            service.allocate("o1", "A-REAL-SKU", 10)
 
     def test_out_of_stock(self):
         """
         Test that the allocation service raises an error when there is no stock available.
         """
-        service = self.get_service()
+        service = AllocationService(FakeRepository(Batch, []), FakeSession())
         service.add_batch("b1", "A-REAL-SKU", 9, eta=None)
 
         with pytest.raises(OutOfStock, match="Out of stock"):

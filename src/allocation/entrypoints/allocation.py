@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 
 from allocation.adapters import repository
 from allocation.domain import schemas
-from allocation.entrypoints.dependencies import get_batch_repository, get_session
 from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
+from allocation.service_layer.dependencies import get_batch_repository, get_session
 from allocation.settings.config import LogConfig
 
 router = APIRouter(prefix="/v1", tags=["allocation"])

@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 
 from allocation.adapters.repository import AbstractRepository, SqlAlchemyRepository
 from allocation.domain import models
-from allocation.entrypoints.dependencies import get_batch_repository, get_session
 from allocation.main import app
+from allocation.service_layer.dependencies import get_batch_repository, get_session
 
 T = TypeVar("T")
 
