@@ -70,7 +70,7 @@ class TestAPI:
         )
 
         data = {"order_id": random_orderid(), "sku": sku, "qty": 3}
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
 
         assert r.status_code == 201
         assert r.json() == {"reference": early_batch}
@@ -84,7 +84,7 @@ class TestAPI:
         sku = random_sku()
         data = {"order_id": random_orderid(), "sku": sku, "qty": 3}
 
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
 
         assert r.status_code == 404
         assert r.json()["detail"] == NoBatchesAvailable().message
@@ -100,7 +100,7 @@ class TestAPI:
         add_stock([(random_batch_ref(None), known_sku, 100, None)])
 
         data = {"order_id": random_orderid(), "sku": unknown_sku, "qty": 20}
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
         assert r.status_code == 400
         assert r.json()["detail"] == InvalidSku(unknown_sku).message
 
@@ -115,7 +115,7 @@ class TestAPI:
         add_stock([(random_batch_ref(None), sku, 10, None)])
 
         data = {"order_id": random_orderid(), "sku": sku, "qty": 20}
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
         assert r.status_code == 400
         assert r.json()["detail"] == OutOfStock().message
 

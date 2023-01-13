@@ -19,7 +19,7 @@ dictConfig(LogConfig().dict())
 logger = logging.getLogger("allocation_service")
 
 
-@router.post("/allocate", status_code=201)
+@router.post("/allocations", status_code=201)
 def allocate(
     order: schemas.OrderLine,
     batch_repository: repository.AbstractRepository = Depends(get_batch_repository),
