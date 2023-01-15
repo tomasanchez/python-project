@@ -39,6 +39,28 @@ def random_orderid():
     return str(uuid.uuid4())
 
 
+def post_to_add_batch(client, batch_ref: str, sku: str, qty: int, eta: str | None = None):
+    """
+    Post to the add_batch endpoint.
+
+    Args:
+        client: The FastAPI test client.
+        batch_ref (str): The batch reference.
+        sku (str): The Stock Keeping Unit.
+        qty (int): The quantity.
+        eta (str): The Estimated Time of Arrival.
+
+    Returns:
+        response: The response.
+    """
+    r = client.post(
+        "/api/v1/batches",
+        json={"ref": batch_ref, "sku": sku, "qty": qty, "eta": eta},
+    )
+
+    assert r.status_code == 201
+
+
 class TestAPI:
     """
     API end-to-end test cases.
@@ -52,25 +74,20 @@ class TestAPI:
         assert response.status_code == 301
         assert response.headers["location"] == "/docs"
 
-    def test_api_returns_allocation(self, test_client, session, batch_repository, add_stock):
+    def test_adds_batch_and_allocates(self, test_client, session, batch_repository):
         """
-        Tests that the API returns an allocation.
+        Tests that the API adds batches and allocates correctly returns an allocation.
         """
         self.override_dependencies(session, batch_repository)
-
         sku, other_sku = random_sku(), random_sku()
         early_batch, later_batch, other_batch = random_batch_ref(1), random_batch_ref(2), random_batch_ref(3)
 
-        add_stock(
-            [
-                (later_batch, sku, 100, "2011-01-02"),
-                (early_batch, sku, 100, "2011-01-01"),
-                (other_batch, other_sku, 100, None),
-            ]
-        )
+        post_to_add_batch(test_client, later_batch, sku, 100, "2011-01-02")
+        post_to_add_batch(test_client, early_batch, sku, 100, "2011-01-01")
+        post_to_add_batch(test_client, other_batch, other_sku, 100)
 
         data = {"order_id": random_orderid(), "sku": sku, "qty": 3}
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
 
         assert r.status_code == 201
         assert r.json() == {"reference": early_batch}
@@ -84,7 +101,7 @@ class TestAPI:
         sku = random_sku()
         data = {"order_id": random_orderid(), "sku": sku, "qty": 3}
 
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
 
         assert r.status_code == 404
         assert r.json()["detail"] == NoBatchesAvailable().message
@@ -100,7 +117,7 @@ class TestAPI:
         add_stock([(random_batch_ref(None), known_sku, 100, None)])
 
         data = {"order_id": random_orderid(), "sku": unknown_sku, "qty": 20}
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
         assert r.status_code == 400
         assert r.json()["detail"] == InvalidSku(unknown_sku).message
 
@@ -115,7 +132,7 @@ class TestAPI:
         add_stock([(random_batch_ref(None), sku, 10, None)])
 
         data = {"order_id": random_orderid(), "sku": sku, "qty": 20}
-        r = test_client.post("/api/v1/allocate", json=data)
+        r = test_client.post("/api/v1/allocations", json=data)
         assert r.status_code == 400
         assert r.json()["detail"] == OutOfStock().message
 

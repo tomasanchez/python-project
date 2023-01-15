@@ -1,6 +1,8 @@
 """
 This module describes the service responsible for allocating orders.
 """
+from datetime import date
+
 from sqlalchemy.orm import Session
 
 from allocation.adapters.repository import AbstractRepository
@@ -51,12 +53,14 @@ class AllocationService:
         self.batch_repository = batch_repository
         self.session = session
 
-    def allocate(self, order: OrderLine) -> str:
+    def allocate(self, order_id: str, sku: str, qty: int) -> str:
         """
         Allocates an order line.
 
         Args:
-            order (OrderLine): The order line to allocate.
+            order_id: Identifier of an order line
+            sku: The Stock Keeping Unit
+            qty: Quantity of the order line
 
         Returns:
             str: The reference of the batch allocated.
@@ -65,15 +69,16 @@ class AllocationService:
             InvalidSku: Raised when the SKU is invalid.
             OutOfStock: Raised when there is no stock available.
         """
+        line = OrderLine(order_id=order_id, sku=sku, qty=qty)
         batches: list[Batch] = self.batch_repository.find_all()
 
         if not batches:
             raise NoBatchesAvailable()
 
-        if not is_valid_sku(order.sku, batches):
-            raise InvalidSku(order.sku)
+        if not is_valid_sku(sku, batches):
+            raise InvalidSku(sku)
 
-        batch_ref = allocate(order, batches)
+        batch_ref = allocate(line, batches)
 
         if not batch_ref:
             raise OutOfStock()
@@ -81,6 +86,20 @@ class AllocationService:
         self.session.commit()
 
         return batch_ref
+
+    def add_batch(self, ref: str, sku: str, qty: int, eta: date | None = None):
+        """
+        Adds a batch.
+
+        Args:
+            ref: The batch reference.
+            sku: The Stock Keeping Unit
+            qty: Quantity of the batch
+            eta: Estimated time of arrival
+        """
+        batch = Batch(ref=ref, sku=sku, qty=qty, eta=eta)
+        self.batch_repository.save(batch)
+        self.session.commit()
 
 
 def allocate(order: OrderLine, batches: list[Batch]) -> str | None:

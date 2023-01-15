@@ -8,9 +8,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from allocation.adapters import repository
-from allocation.domain import models, schemas
-from allocation.entrypoints.dependencies import get_batch_repository, get_session
+from allocation.domain import schemas
 from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
+from allocation.service_layer.dependencies import get_batch_repository, get_session
 from allocation.settings.config import LogConfig
 
 router = APIRouter(prefix="/v1", tags=["allocation"])
@@ -19,7 +19,7 @@ dictConfig(LogConfig().dict())
 logger = logging.getLogger("allocation_service")
 
 
-@router.post("/allocate", status_code=201)
+@router.post("/allocations", status_code=201)
 def allocate(
     order: schemas.OrderLine,
     batch_repository: repository.AbstractRepository = Depends(get_batch_repository),
@@ -29,11 +29,10 @@ def allocate(
     Allocates an order line.
     """
     logger.info("Allocating order (%s)", order)
-    line = models.OrderLine(order.order_id, order.sku, order.qty)
 
     try:
         service = AllocationService(batch_repository, session)
-        batch_ref = service.allocate(line)
+        batch_ref = service.allocate(**order.dict())
     except (InvalidSku, OutOfStock) as e:
         logger.error("Could not allocate for order (%s)", order)
         raise HTTPException(status_code=400, detail=str(e)) from e

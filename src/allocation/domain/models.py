@@ -10,6 +10,11 @@ from datetime import date
 class OrderLine:
     """
     Represents an item in an order.
+
+    Attributes:
+        order_id (str): The order ID.
+        sku (str): The SKU.
+        qty (int): The quantity.
     """
 
     order_id: str
@@ -20,6 +25,11 @@ class OrderLine:
 class Batch:
     """
     Represents Batch of a Stock.
+
+    Attributes:
+        reference (str): The batch reference.
+        sku (str): The SKU.
+        eta (date): Estimated Time of Arrival.
     """
 
     def __init__(self, ref: str, sku: str, qty: int, eta: date | None = None):
