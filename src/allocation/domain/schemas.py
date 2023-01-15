@@ -1,10 +1,10 @@
 """
 This module contains the schemas used for request/response validation in the allocation service.
 """
-
+from datetime import date
 from re import sub
 
-from pydantic import BaseConfig, BaseModel, validator
+from pydantic import BaseConfig, BaseModel, Field, validator
 
 
 def to_camel(s: str) -> str:
@@ -36,6 +36,33 @@ class OrderLine(CamelCaseModel):
     order_id: str
     sku: str
     qty: int
+
+    @validator("qty")
+    def qty_greater_than_zero(cls, v):
+        """
+        Validates that the quantity is greater than zero.
+
+        Args:
+            v: The quantity to validate.
+
+        Returns:
+            bool: True if the quantity is greater than zero.
+        """
+        if v <= 0:
+            raise ValueError("Quantity must be greater than zero.")
+
+        return v
+
+
+class BatchIn(CamelCaseModel):
+    """
+    Represents a batch of items.
+    """
+
+    ref: str = Field(title="Reference", description="A batch reference.")
+    sku: str = Field(title="SKU", description="A Stock Keeping Unit.")
+    qty: int = Field(title="Quantity", description="The quantity of items in the batch.")
+    eta: date | None = Field(title="ETA", description="The estimated time of arrival.")
 
     @validator("qty")
     def qty_greater_than_zero(cls, v):
