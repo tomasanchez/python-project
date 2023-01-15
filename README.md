@@ -113,3 +113,41 @@ Here’s one way we could organize things:
   inward-facing adapters.
 - **(4)**. Entrypoints are the places we drive our application from. In the official ports and adapters terminology,
   these are adapters too, and are referred to as primary, driving, or outward-facing adapters.
+
+#### High Gear and Low Gear
+
+Many of our unit tests operate at a lower lever, closer to the domain model.
+
+> I was initially skeptical of all Bob’s architectural patterns, but seeing an actual test pyramid made me a convert.
+>
+> Once you implement domain modeling and the service layer, you really actually can get to a stage where unit tests
+> outnumber integration and end-to-end tests by an order of magnitude. Having worked in places where the E2E test build
+> would take hours ("wait 'til tomorrow," essentially), I can’t tell you what a difference it makes to be able to run
+> all your tests in minutes or seconds.
+>
+> Read on for some guidelines on how to decide what kinds of tests to write and at which level. The high gear versus low
+> gear way of thinking really changed my testing life.
+>
+> <cite>[Cosmic Python - Chapter 5](https://www.cosmicpython.com/book/chapter_05_high_gear_low_gear.html)</cite>
+
+Is it wrong to test against the domain model?
+
+![The Test Spectrum](https://www.cosmicpython.com/book/images/apwp_0501.png)
+
+A test for the HTTP API tells us nothing about the fine-grained design of our objects, because it sits at a much higher
+level of abstraction. We can rewrite our entire application and, so long as we don't change the URL paths or request
+format, our tests will continue to pass.
+
+At the other end of the spectrum, in previous [chapters](https://www.cosmicpython.com/book/chapter_01_domain_model.html)
+, tests helped us understand the objects we needed. Guiding us to a design that makes sense and reads in the domain
+language. When starting a new project or when hitting a particularly gnarly problem, we will drop back down to writing
+tests against the domain model, so we get better feedback and executable documentation of our intent.
+
+> The metaphor we use is that of shifting gears. When starting a journey, the bicycle needs to be in a low gear so that
+> it can overcome inertia. Once we’re off and running, we can go faster and more efficiently by changing into a high
+> gear;
+> but if we suddenly encounter a steep hill or are forced to slow down by a hazard, we again drop down to a low gear
+> until
+> we can pick up speed again.
+>
+> <cite>[Cosmic Python - Chapter 5](https://www.cosmicpython.com/book/chapter_05_high_gear_low_gear.html#_high_and_low_gear)</cite>
