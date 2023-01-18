@@ -4,12 +4,11 @@ This module contains the entry point for the Batch resource.
 """
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 
-from allocation.adapters.repository import AbstractRepository
 from allocation.domain.schemas import BatchIn
 from allocation.service_layer.allocation_service import AllocationService
-from allocation.service_layer.dependencies import get_batch_repository, get_session
+from allocation.service_layer.dependencies import get_uow
+from allocation.service_layer.unit_of_work import AbstractUnitOfWork
 
 router = APIRouter(prefix="/v1", tags=["batch"])
 
@@ -21,12 +20,11 @@ router = APIRouter(prefix="/v1", tags=["batch"])
 )
 def add_batch(
     batch: BatchIn,
-    session: Session = Depends(get_session),
-    batch_repository: AbstractRepository = Depends(get_batch_repository),
+    uow: AbstractUnitOfWork = Depends(get_uow),
 ):
     """
     Adds a new batch.
     """
-    service = AllocationService(batch_repository, session)
+    service = AllocationService(uow)
 
     service.add_batch(**batch.dict())
