@@ -12,9 +12,8 @@ from sqlalchemy.pool import StaticPool
 from starlette.testclient import TestClient
 
 from allocation.adapters.orm import metadata, start_mappers
-from allocation.adapters.repository import SqlAlchemyRepository
-from allocation.domain.models import Batch
 from allocation.main import app
+from allocation.service_layer.unit_of_work import SqlAlchemyUnitOfWork
 
 
 @pytest.fixture(name="test_client")
@@ -57,52 +56,31 @@ def fixture_session(in_memory_db) -> sqlalchemy.orm.session.Session:
     clear_mappers()
 
 
-@pytest.fixture
-def add_stock(session) -> Callable[[list[tuple[str, str, int, str | None]]], None]:
+@pytest.fixture(name="session_factory")
+def fixture_session_factory(in_memory_db) -> Callable:
     """
-    Provides an easy way of persisting batches.
+    Creates a session factory for the in-memory SQLite database.
 
     Parameters:
-        session (sqlalchemy.orm.session.Session): The session for the in-memory SQLite database.
+        in_memory_db (sqlalchemy.engine.Engine): The in-memory SQLite database.
 
-    Returns: Callable[[list[tuple[str, str, int, str | None]]], None]: A function that given a list of batches,
-    saves them to in-memory DB.
+    Returns:
+        Callable: A session factory for the in-memory SQLite database.
     """
-
-    def add_to_db(_session, _batches):
-        """
-        Saves to the database.
-
-        Args:
-            _session: The session for the in-memory SQLite database.
-            _batches (tuple): A list of batches.
-        """
-        _session.execute(
-            "INSERT INTO batches (reference, sku, _purchased_quantity, eta) VALUES (:reference, :sku, :qty, :eta)",
-            [
-                {
-                    "reference": reference,
-                    "sku": sku,
-                    "qty": qty,
-                    "eta": eta,
-                }
-                for (reference, sku, qty, eta) in _batches
-            ],
-        )
-        _session.commit()
-
-    return partial(add_to_db, session)
+    start_mappers()
+    yield partial(sessionmaker(bind=in_memory_db))
+    clear_mappers()
 
 
 @pytest.fixture
-def batch_repository(session) -> SqlAlchemyRepository:
+def uow(session_factory) -> SqlAlchemyUnitOfWork:
     """
-    Provides a repository for batches.
+    Provides a unit of work for the in-memory SQLite database.
 
     Args:
-        session: the session for the in-memory SQLite database.
+        session_factory: A session factory for the in-memory SQLite database.
 
     Returns:
-        SqlAlchemyRepository: a repository for batches.
+        SqlAlchemyUnitOfWork: A unit of work for the in-memory SQLite database.
     """
-    return SqlAlchemyRepository(session=session, kind=Batch)
+    return SqlAlchemyUnitOfWork(session_factory=session_factory)

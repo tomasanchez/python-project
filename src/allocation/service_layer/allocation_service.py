@@ -3,10 +3,8 @@ This module describes the service responsible for allocating orders.
 """
 from datetime import date
 
-from sqlalchemy.orm import Session
-
-from allocation.adapters.repository import AbstractRepository
 from allocation.domain.models import Batch, OrderLine
+from allocation.service_layer.unit_of_work import AbstractUnitOfWork
 
 
 class InvalidSku(Exception):
@@ -49,9 +47,8 @@ class AllocationService:
     Abstraction responsible for allocating orders.
     """
 
-    def __init__(self, batch_repository: AbstractRepository, session: Session):
-        self.batch_repository = batch_repository
-        self.session = session
+    def __init__(self, uow: AbstractUnitOfWork):
+        self.uow = uow
 
     def allocate(self, order_id: str, sku: str, qty: int) -> str:
         """
@@ -66,24 +63,27 @@ class AllocationService:
             str: The reference of the batch allocated.
 
         Raises:
+            NoBatchesAvailable: Raised when there are no batches available.
             InvalidSku: Raised when the SKU is invalid.
             OutOfStock: Raised when there is no stock available.
         """
         line = OrderLine(order_id=order_id, sku=sku, qty=qty)
-        batches: list[Batch] = self.batch_repository.find_all()
 
-        if not batches:
-            raise NoBatchesAvailable()
+        with self.uow:
+            batches: list[Batch] = self.uow.batches.find_all()
 
-        if not is_valid_sku(sku, batches):
-            raise InvalidSku(sku)
+            if not batches:
+                raise NoBatchesAvailable()
 
-        batch_ref = allocate(line, batches)
+            if not is_valid_sku(sku, batches):
+                raise InvalidSku(sku)
 
-        if not batch_ref:
-            raise OutOfStock()
+            batch_ref = allocate(line, batches)
 
-        self.session.commit()
+            if batch_ref is None:
+                raise OutOfStock()
+
+            self.uow.commit()
 
         return batch_ref
 
@@ -97,9 +97,9 @@ class AllocationService:
             qty: Quantity of the batch
             eta: Estimated time of arrival
         """
-        batch = Batch(ref=ref, sku=sku, qty=qty, eta=eta)
-        self.batch_repository.save(batch)
-        self.session.commit()
+        with self.uow:
+            self.uow.batches.save(Batch(ref=ref, sku=sku, qty=qty, eta=eta))
+            self.uow.commit()
 
 
 def allocate(order: OrderLine, batches: list[Batch]) -> str | None:

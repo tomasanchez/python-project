@@ -4,7 +4,7 @@ This module test the FastAPI API.
 import uuid
 
 from allocation.service_layer.allocation_service import InvalidSku, NoBatchesAvailable, OutOfStock
-from tests.mocks import override_batch_repository, override_session
+from tests.mocks import override_uow
 
 
 def random_sku():
@@ -74,11 +74,11 @@ class TestAPI:
         assert response.status_code == 301
         assert response.headers["location"] == "/docs"
 
-    def test_adds_batch_and_allocates(self, test_client, session, batch_repository):
+    def test_adds_batch_and_allocates(self, test_client, uow):
         """
         Tests that the API adds batches and allocates correctly returns an allocation.
         """
-        self.override_dependencies(session, batch_repository)
+        self.override_dependencies(uow)
         sku, other_sku = random_sku(), random_sku()
         early_batch, later_batch, other_batch = random_batch_ref(1), random_batch_ref(2), random_batch_ref(3)
 
@@ -92,11 +92,11 @@ class TestAPI:
         assert r.status_code == 201
         assert r.json() == {"reference": early_batch}
 
-    def test_api_no_batches(self, test_client, session, batch_repository):
+    def test_api_no_batches(self, test_client, uow):
         """
         Tests that the API returns a 404 when there are no batches.
         """
-        self.override_dependencies(session, batch_repository)
+        self.override_dependencies(uow)
 
         sku = random_sku()
         data = {"order_id": random_orderid(), "sku": sku, "qty": 3}
@@ -106,30 +106,30 @@ class TestAPI:
         assert r.status_code == 404
         assert r.json()["detail"] == NoBatchesAvailable().message
 
-    def test_api_invalid_sku(self, test_client, session, batch_repository, add_stock):
+    def test_api_invalid_sku(self, test_client, uow):
         """
         Tests that the API returns a 400 when there is an invalid SKU, and there are batches.
         """
-        self.override_dependencies(session, batch_repository)
+        self.override_dependencies(uow)
 
         unknown_sku, known_sku = random_sku(), random_sku()
 
-        add_stock([(random_batch_ref(None), known_sku, 100, None)])
+        post_to_add_batch(test_client, random_batch_ref(None), known_sku, 100, None)
 
         data = {"order_id": random_orderid(), "sku": unknown_sku, "qty": 20}
         r = test_client.post("/api/v1/allocations", json=data)
         assert r.status_code == 400
         assert r.json()["detail"] == InvalidSku(unknown_sku).message
 
-    def test_api_out_of_stock(self, test_client, session, batch_repository, add_stock):
+    def test_api_out_of_stock(self, test_client, uow):
         """
         Tests that the API returns a 400 when there is an out-of-stock error, and there are batches.
         """
-        self.override_dependencies(session, batch_repository)
+        self.override_dependencies(uow)
 
         sku = random_sku()
 
-        add_stock([(random_batch_ref(None), sku, 10, None)])
+        post_to_add_batch(test_client, random_batch_ref(None), sku, 10, None)
 
         data = {"order_id": random_orderid(), "sku": sku, "qty": 20}
         r = test_client.post("/api/v1/allocations", json=data)
@@ -137,9 +137,8 @@ class TestAPI:
         assert r.json()["detail"] == OutOfStock().message
 
     @staticmethod
-    def override_dependencies(session, repository):
+    def override_dependencies(uow):
         """
         Overrides the Fast API dependencies.
         """
-        override_batch_repository(repository)
-        override_session(session)
+        override_uow(uow)

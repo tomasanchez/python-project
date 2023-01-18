@@ -5,9 +5,9 @@ import datetime
 
 import pytest
 
-from allocation.domain.models import Batch
 from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
-from tests.mocks import FakeRepository, FakeSession
+from allocation.service_layer.unit_of_work import AbstractUnitOfWork
+from tests.mocks import FakeUoW
 
 
 class TestAllocationService:
@@ -43,15 +43,14 @@ class TestAllocationService:
         """
         Test that the allocation service raises an error when there are no batches available.
         """
-        service = AllocationService(FakeRepository(Batch, []), FakeSession())
         with pytest.raises(NoBatchesAvailable, match="No batches available"):
-            service.allocate("o1", "A-REAL-SKU", 10)
+            self.get_service().allocate("o1", "A-REAL-SKU", 10)
 
     def test_out_of_stock(self):
         """
         Test that the allocation service raises an error when there is no stock available.
         """
-        service = AllocationService(FakeRepository(Batch, []), FakeSession())
+        service = self.get_service()
         service.add_batch("b1", "A-REAL-SKU", 9, eta=None)
 
         with pytest.raises(OutOfStock, match="Out of stock"):
@@ -61,14 +60,16 @@ class TestAllocationService:
         """
         Tests that the allocation service commits the session.
         """
-        session = FakeSession()
-        service = self.get_service(session=session)
+        service = self.get_service()
+
+        # noinspection PyTypeChecker
+        uow: FakeUoW = service.uow
 
         service.add_batch("b1", "OMINOUS-MIRROR", 100, eta=None)
 
         service.allocate("o1", "OMINOUS-MIRROR", 10)
 
-        assert session.committed is True
+        assert uow.committed is True
 
     def test_prefer_warehouse_batches_to_shipments(self):
         """
@@ -87,15 +88,17 @@ class TestAllocationService:
         assert allocated_ref == in_stock_ref
 
     @staticmethod
-    def get_service(repository=FakeRepository(Batch, []), session=FakeSession()):
+    def get_service(uow: AbstractUnitOfWork = None) -> AllocationService:
         """
         Builds an Allocation service with a fake session
 
         Args:
-            repository: a Fake repository
-            session: a Fake session
+            uow: The unit of work to use
 
         Returns:
             AllocationService: a spied AllocationService
         """
-        return AllocationService(repository, session)
+        if uow is None:
+            uow = FakeUoW()
+
+        return AllocationService(uow)

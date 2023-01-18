@@ -6,32 +6,23 @@ from typing import Generic, TypeVar
 
 from sqlalchemy.orm import Session
 
-from allocation.adapters.repository import AbstractRepository, SqlAlchemyRepository
+from allocation.adapters.repository import AbstractRepository
 from allocation.domain import models
 from allocation.main import app
-from allocation.service_layer.dependencies import get_batch_repository, get_session
+from allocation.service_layer.dependencies import get_uow
+from allocation.service_layer.unit_of_work import AbstractUnitOfWork
 
 T = TypeVar("T")
 
 
-def override_session(session):
+def override_uow(uow: AbstractUnitOfWork):
     """
-    Overrides the session dependency for the FastAPI application.
+    Overrides the UOW dependency for the FastAPI application.
 
     Args:
-        session: a test SQLAlchemy session
+        uow: a Unit of Work
     """
-    app.dependency_overrides[get_session] = lambda: session
-
-
-def override_batch_repository(repository: SqlAlchemyRepository):
-    """
-    Overrides the batch repository dependency for the FastAPI application.
-
-    Args:
-        repository: a Batch repository
-    """
-    app.dependency_overrides[get_batch_repository] = lambda: repository
+    app.dependency_overrides[get_uow] = lambda: uow
 
 
 class FakeRepository(AbstractRepository, Generic[T]):
@@ -39,7 +30,10 @@ class FakeRepository(AbstractRepository, Generic[T]):
     A Fake Repository implementation
     """
 
-    def __init__(self, kind: T, data: list[T]):
+    def __init__(self, kind: T, data: list[T] | None = None):
+        if data is None:
+            data = []
+
         self.data = data
         super().__init__(kind)
 
@@ -51,6 +45,9 @@ class FakeRepository(AbstractRepository, Generic[T]):
 
     def find_all(self) -> list[T]:
         return self.data
+
+    def find_by(self, **kwargs) -> T | None:
+        return next((x for x in self.data if x.__dict__ == kwargs), None)
 
     def add(self, ref: str, sku: str, qty: int, eta: datetime.date | None = None):
         """
@@ -65,24 +62,12 @@ class FakeRepository(AbstractRepository, Generic[T]):
         """
         self.data.append(models.Batch(ref, sku, qty, eta))
 
-    @staticmethod
-    def for_batch(ref: str, sku: str, qty: int, eta: datetime.date | None = None):
-        """
-        Creates a fake repository for a batch.
-
-        Args:
-            ref: The batch reference.
-            sku: The Stock Keeping Unit
-            qty: Quantity
-            eta: Estimated Time of Arrival
-
-        Returns:
-            FakeRepository: A fake repository for a batch.
-        """
-        return FakeRepository(models.Batch, [models.Batch(ref, sku, qty, eta)])
-
 
 class FakeSession(Session):
+    """
+    A mock session implementation.
+    """
+
     committed = False
 
     def commit(self):
@@ -90,3 +75,40 @@ class FakeSession(Session):
         Mocks a commit in a session
         """
         self.committed = True
+
+    def rollback(self) -> None:
+        """
+        Mocks a rollback in a session
+        """
+        self.committed = False
+
+
+class FakeUoW(AbstractUnitOfWork):
+    """
+    A mock unit of work implementation.
+    """
+
+    def __init__(self, batches: AbstractRepository = None):
+        if batches is None:
+            batches = FakeRepository(models.Batch)
+
+        self.batches = batches
+        self.committed = False
+
+    def commit(self):
+        """
+        Mocks a commit in a unit of work.
+        """
+        self.committed = True
+
+    def rollback(self):
+        """
+        Mocks a rollback in a unit of work.
+        """
+        self.committed = False
+
+    def __exit__(self, *args):
+        pass
+
+    def __enter__(self):
+        return self
