@@ -4,7 +4,7 @@ This module contains the schemas used for request/response validation in the all
 from datetime import date
 from re import sub
 
-from pydantic import BaseConfig, BaseModel, Field, validator
+from pydantic import BaseConfig, BaseModel, Field
 
 
 def to_camel(s: str) -> str:
@@ -33,25 +33,9 @@ class OrderLine(CamelCaseModel):
     Represents an item in an order.
     """
 
-    order_id: str
-    sku: str
-    qty: int
-
-    @validator("qty")
-    def qty_greater_than_zero(cls, v):
-        """
-        Validates that the quantity is greater than zero.
-
-        Args:
-            v: The quantity to validate.
-
-        Returns:
-            bool: True if the quantity is greater than zero.
-        """
-        if v <= 0:
-            raise ValueError("Quantity must be greater than zero.")
-
-        return v
+    order_id: str = Field(title="Order ID", description="The order unique identifier")
+    sku: str = Field(title="SKU", description="The stock keeping unit")
+    qty: int = Field(title="Quantity", description="The quantity of the item", gt=0)
 
 
 class BatchIn(CamelCaseModel):
@@ -61,21 +45,5 @@ class BatchIn(CamelCaseModel):
 
     ref: str = Field(title="Reference", description="A batch reference.")
     sku: str = Field(title="SKU", description="A Stock Keeping Unit.")
-    qty: int = Field(title="Quantity", description="The quantity of items in the batch.")
+    qty: int = Field(title="Quantity", description="The quantity of items in the batch.", gt=0)
     eta: date | None = Field(title="ETA", description="The estimated time of arrival.")
-
-    @validator("qty")
-    def qty_greater_than_zero(cls, v):
-        """
-        Validates that the quantity is greater than zero.
-
-        Args:
-            v: The quantity to validate.
-
-        Returns:
-            bool: True if the quantity is greater than zero.
-        """
-        if v <= 0:
-            raise ValueError("Quantity must be greater than zero.")
-
-        return v
