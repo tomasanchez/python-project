@@ -151,3 +151,33 @@ tests against the domain model, so we get better feedback and executable documen
 > we can pick up speed again.
 >
 > <cite>[Cosmic Python - Chapter 5](https://www.cosmicpython.com/book/chapter_05_high_gear_low_gear.html#_high_and_low_gear)</cite>
+
+### Unit of Work
+
+The Unit of Work pattern is a way to abstract over the idea of atomic operations. Allowing us to fully decouple the
+service layer from the data layer.
+
+* **The Unit of Work pattern is an abstraction around data integrity**:
+  It helps to enforce the consistency of our domain model, and improves performance, by letting us perform a single
+  flush operation at the end of an operation.
+* **It works closely with the Repository and Service Layer patterns**: The Unit of Work pattern completes our
+  abstractions over data access by representing atomic updates. Each of our service-layer use cases runs in a single
+  unit of work that succeeds or fails as a block.
+* **This is a lovely case for a context manager**: Context managers are an idiomatic way of defining scope in Python. We
+  can use a context manager to automatically roll back our work at the end of a request, which means the system is safe
+  by default.
+* **SQLAlchemy already implements this pattern**: We introduce an even simpler abstraction over the SQLAlchemy Session
+  object in order to "narrow" the interface between the ORM and our code. This helps to keep us loosely coupled.
+
+![Unit of Work](https://www.cosmicpython.com/book/images/apwp_0602.png)
+
+> The UoW acts as a single entrypoint to our persistent storage, and it keeps track of what objects were loaded and of
+> the latest state.
+>
+> This gives us three useful things:
+>
+> - A stable snapshot of the database to work with, so the objects we use aren’t changing halfway through an operation
+> - A way to persist all of our changes at once, so if something goes wrong, we don’t end up in an inconsistent state
+> - A simple API to our persistence concerns and a handy place to get a repository
+>
+> <cite>[Cosmic Python - Chapter 6](https://www.cosmicpython.com/book/chapter_06_uow.html)</cite>
