@@ -3,7 +3,8 @@ This module test the FastAPI API.
 """
 import uuid
 
-from allocation.service_layer.allocation_service import InvalidSku, NoBatchesAvailable, OutOfStock
+from allocation.domain.models import OutOfStock
+from allocation.service_layer.allocation_service import InvalidSku, NoBatchesAvailable
 from tests.mocks import override_uow
 
 

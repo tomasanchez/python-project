@@ -3,7 +3,6 @@ Allocation Tests.
 """
 
 from datetime import date
-from unittest import TestCase
 
 from allocation.domain.models import Batch, OrderLine
 
@@ -26,7 +25,7 @@ def make_batch_and_line(sku, batch_qty, line_qty) -> tuple[Batch, OrderLine]:
     )
 
 
-class TestAllocationDomain(TestCase):
+class TestAllocationDomain:
     """
     Allocation Domain Test Suite
     """

@@ -5,7 +5,8 @@ import datetime
 
 import pytest
 
-from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable, OutOfStock
+from allocation.domain.models import OutOfStock
+from allocation.service_layer.allocation_service import AllocationService, InvalidSku, NoBatchesAvailable
 from allocation.service_layer.unit_of_work import AbstractUnitOfWork
 from tests.mocks import FakeUoW
 

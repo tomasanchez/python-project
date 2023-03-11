@@ -24,9 +24,9 @@ batches = Table(
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("reference", String(255)),
-    Column("sku", String(255)),
+    Column("sku", ForeignKey("products.sku")),
     Column("_purchased_quantity", Integer, nullable=False),
-    Column("eta", Date, nullable=True, default=datetime.datetime.utcnow),
+    Column("eta", Date, default=datetime.datetime.utcnow, nullable=True),
 )
 
 allocations = Table(
@@ -37,13 +37,20 @@ allocations = Table(
     Column("batch_id", ForeignKey("batches.id")),
 )
 
+products = Table(
+    "products",
+    metadata,
+    Column("sku", String(255), primary_key=True),
+    Column("version_number", Integer, nullable=False, server_default="0"),
+)
+
 
 def start_mappers():
     """
     Classic SQLAlchemy DB mapper configuration function.
     """
     lines_mapper = mapper(model.OrderLine, order_lines)
-    mapper(
+    batches_mapper = mapper(
         model.Batch,
         batches,
         properties={
@@ -53,4 +60,9 @@ def start_mappers():
                 collection_class=set,
             )
         },
+    )
+    mapper(
+        model.Product,
+        products,
+        properties={"batches": relationship(batches_mapper)},
     )

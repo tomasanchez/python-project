@@ -3,7 +3,7 @@ This module describes the service responsible for allocating orders.
 """
 from datetime import date
 
-from allocation.domain.models import Batch, OrderLine
+from allocation.domain.models import Batch, OrderLine, OutOfStock
 from allocation.service_layer.unit_of_work import AbstractUnitOfWork
 
 
@@ -19,16 +19,6 @@ class InvalidSku(Exception):
     ):
         self.message = message
         self.sku = sku
-        super().__init__(self.message)
-
-
-class OutOfStock(Exception):
-    """
-    Raised when there is no stock available.
-    """
-
-    def __init__(self):
-        self.message = "Out of stock"
         super().__init__(self.message)
 
 

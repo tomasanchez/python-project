@@ -6,6 +6,16 @@ from dataclasses import dataclass
 from datetime import date
 
 
+class OutOfStock(Exception):
+    """
+    Raised when there is no stock available.
+    """
+
+    def __init__(self):
+        self.message = "Out of stock"
+        super().__init__(self.message)
+
+
 @dataclass(unsafe_hash=True)
 class OrderLine:
     """
@@ -105,3 +115,51 @@ class Batch:
         if other.eta is None:
             return True
         return self.eta > other.eta
+
+
+class Product:
+    """
+    Represents a Product.
+
+    Attributes:
+        sku (str): The Stock Keeping Unit is the Main identifier.
+        batches (list[Batch]): The batches of the product.
+        version_number (int): The version number of the product.
+    """
+
+    def __init__(self, sku: str, batches: list[Batch] | None = None, version: int = 0):
+        self.sku: str = sku
+        self.batches: list[Batch] = batches or []
+        self.version_number: int = version
+
+    def allocate(self, line: OrderLine) -> str:
+        """
+        Allocates the line to the first available batch.
+
+        Args:
+            line (OrderLine): The line to allocate.
+
+        Returns:
+            str: The reference of the batch allocated.
+
+        Raises:
+            OutOfStock: Raised when there is no stock available.
+        """
+
+        # noinspection PyTypeChecker
+        batches = sorted(self.batches)
+
+        try:
+            batch = next(b for b in batches if b.can_allocate(line))
+            batch.allocate(line)
+            return batch.reference
+        except StopIteration as exc:
+            raise OutOfStock() from exc
+
+    def __eq__(self, other):
+        if not isinstance(other, Product):
+            return False
+        return other.sku == self.sku
+
+    def __gt__(self, other):
+        return self.sku > other.sku
